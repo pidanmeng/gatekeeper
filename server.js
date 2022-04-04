@@ -10,10 +10,14 @@ var TRUNCATE_THRESHOLD = 10,
     REVEALED_CHARS = 3,
     REPLACEMENT = '***';
 
+var CONFIG_PATH = '/config.json',
+    LOCAL_CONFIG_PATH = '/local_config.json';
+
 // Load config defaults from JSON file.
 // Environment variables override defaults.
-function loadConfig() {
-  var config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
+function loadConfig(local = false) {
+  var path = local ? LOCAL_CONFIG_PATH : CONFIG_PATH;
+  var config = JSON.parse(fs.readFileSync(__dirname + path, 'utf-8'));
   log('Configuration');
   for (var i in config) {
     var configItem = process.env[i.toUpperCase()] || config[i];
@@ -30,20 +34,22 @@ function loadConfig() {
   return config;
 }
 
-var config = loadConfig();
+var config = loadConfig(false);
+var local_config = loadConfig(true);
 
-function authenticate(code, cb) {
+function authenticate(code, cb, local = false) {
+  var curr_config = local ? local_config : config
   var data = qs.stringify({
-    client_id: config.oauth_client_id,
-    client_secret: config.oauth_client_secret,
+    client_id: curr_config.oauth_client_id,
+    client_secret: curr_config.oauth_client_secret,
     code: code
   });
 
   var reqOptions = {
-    host: config.oauth_host,
-    port: config.oauth_port,
-    path: config.oauth_path,
-    method: config.oauth_method,
+    host: curr_config.oauth_host,
+    port: curr_config.oauth_port,
+    path: curr_config.oauth_path,
+    method: curr_config.oauth_method,
     headers: { 'content-length': data.length }
   };
 
@@ -104,7 +110,22 @@ app.get('/authenticate/:code', function(req, res) {
       log("token", result.token, true);
     }
     res.json(result);
-  });
+  }, false);
+});
+
+app.get('/authenticateLocal/:code', function(req, res) {
+  log('authenticating code:', req.params.code, true);
+  authenticate(req.params.code, function(err, token) {
+    var result
+    if ( err || !token ) {
+      result = {"error": err || "bad_code"};
+      log(result.error);
+    } else {
+      result = {"token": token};
+      log("token", result.token, true);
+    }
+    res.json(result);
+  }, true);
 });
 
 module.exports.config = config;
