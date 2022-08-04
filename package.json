@@ -19,9 +19,12 @@
   "license": "MIT",
   "contributors": [],
   "dependencies": {
+    "@vercel/node": "^2.5.3",
     "express": "~4.16.2"
   },
-  "engines": { "node": "16.x" },
+  "engines": {
+    "node": "16.x"
+  },
   "main": "index",
   "version": "0.1.0",
   "devDependencies": {
