@@ -21,9 +21,7 @@
   "dependencies": {
     "express": "~4.16.2"
   },
-  "engines": {
-    "node": "~6.11.1"
-  },
+  "engines": { "node": "16.x" },
   "main": "index",
   "version": "0.1.0",
   "devDependencies": {
